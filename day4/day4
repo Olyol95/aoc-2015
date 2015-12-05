@@ -1,0 +1,21 @@
+#!/usr/bin/perl
+
+use strict;
+use warnings;
+
+use Digest::MD5 qw(md5_hex);
+
+open (my $fh, '<', shift) or die "error opening input file: $!";
+
+while (<$fh>) {
+    chomp;
+    my $answer = 0;
+    $answer++ while (not md5_hex($_ . $answer) =~ /^00000/);
+    print $answer . "\n";
+
+    $answer = 0;
+    $answer++ while (not md5_hex($_ . $answer) =~ /^000000/);
+    print $answer . "\n";
+}
+
+close $fh;
