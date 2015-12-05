@@ -1,0 +1,33 @@
+#!/usr/bin/perl
+
+use strict;
+use warnings;
+
+open (my $fh, '<', shift) or die "Error opening input file: $!";
+
+my (@nice_strings_1, @nice_strings_2);
+
+while (<$fh>) {
+    chomp;
+    push @nice_strings_1, $_ if is_nice_part_1($_);
+    push @nice_strings_2, $_ if is_nice_part_2($_);
+}
+
+close ($fh);
+
+print (scalar (@nice_strings_1) . "\n");
+print (scalar (@nice_strings_2) . "\n");
+
+sub is_nice_part_1 {
+    my $string = shift;
+    return (    ($string =~ /(\w*[aeiou]){3}/i) 
+           and  ($string =~ /(\w)\1/i)
+           and  ($string !~ /ab|cd|pq|xy/i));
+
+}
+
+sub is_nice_part_2 {
+    my $string = shift;
+    return (    ($string =~ /(\w{2})\w*\1/i)
+           and  ($string =~ /(\w)\w\1/i));
+}
