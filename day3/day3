@@ -1,0 +1,57 @@
+#!/usr/bin/perl
+
+use strict;
+use warnings;
+
+sub run {
+    open (my $fh, '<', shift) or die "Error opening input: $!";
+
+    my %location_map;
+    my @locations;
+
+    print "Enter the number of santas: ";
+    
+    foreach (1 .. <STDIN>) {
+        push @locations, [0,0];
+        push_location( \%location_map, \@{ $locations[$_-1] });
+    }
+
+    my $index = 0;
+
+    while (<$fh>) {
+        for my $char (split //, $_) {
+            if ($char eq '<') {
+                ${ $locations[$index] }[0]--;
+            }
+            elsif ($char eq '>') {
+                ${ $locations[$index] }[0]++;
+            }
+            elsif ($char eq '^') {
+                ${ $locations[$index] }[1]++;
+            }
+            elsif ($char eq 'v') {
+                ${ $locations[$index] }[1]--;
+            }
+            else { next; }
+            push_location(\%location_map, \@{ $locations[$index] });
+            $index = ++$index % scalar(@locations);
+        }
+    }
+
+    close $fh;
+
+    print (scalar((keys %location_map)) . "\n");
+
+}
+
+sub push_location {
+    my ($location_map, $location) = @_;
+    if (defined ${ $location_map }{ (${ $location }[0], ${ $location }[1]) }) {
+        ${ $location_map }{ (${ $location }[0], ${ $location }[1]) }++;
+    }
+    else {
+        ${ $location_map }{ (${ $location }[0], ${ $location }[1]) } = 1;
+    }
+}
+
+run(shift);
