@@ -1,0 +1,36 @@
+#!/usr/bin/perl
+
+use List::Util qw(min sum);
+
+use strict;
+use warnings;
+
+sub calculate_wrapping {
+    my ($length, $width, $height) = @_;
+    my @dimensions;
+    push @dimensions, $length*$width;
+    push @dimensions, $width*$height;
+    push @dimensions, $height*$length;
+    return (min(@dimensions) + sum(map {$_ * 2} @dimensions));
+}
+
+sub calculate_ribbon {
+    my ($length, $width, $height) = @_;
+    @_ = sort {$a <=> $b} @_;
+    return ($length*$width*$height) + (2*(shift) + 2*(shift));
+}
+
+open (my $fh, '<', shift) or die "Could not open input file: $!";
+
+my $total_wrapping = 0;
+my $total_ribbon = 0;
+
+while (<$fh>) {
+    $total_wrapping += calculate_wrapping(split /x/, $_);
+    $total_ribbon += calculate_ribbon(split/x/, $_);
+}
+
+close $fh;
+
+print $total_wrapping . "\n";
+print $total_ribbon . "\n";
