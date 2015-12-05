@@ -1,0 +1,21 @@
+#!/usr/bin/perl
+
+use strict;
+use warnings;
+
+my ($total, $count, $first) = 0;
+
+open (my $fh, '<', shift) or die "cannot open input file: $!";
+
+while (<$fh>) {
+    for (split //, $_) {
+        $count++;
+        $total++ if ($_ eq '(');
+        $total-- if ($_ eq ')');
+        print $count . "\n" and $first = 1 if ($total == -1 and not $first);
+    }   
+}
+
+close $fh;
+
+print $total . "\n";
