@@ -1,0 +1,45 @@
+#!/usr/bin/perl
+
+use List::Util qw(sum);
+
+use strict;
+use warnings;
+
+my %light_map_1;
+my %light_map_2;
+
+open (my $fh, '<', shift) or die "Error opening input file: $!";
+
+while (<$fh>) {
+    if (/(turn on|turn off|toggle)\s+(\d+),(\d+)\s+through\s+(\d+),(\d+)/i) {
+        my $command = $1;
+        my ($x1, $y1, $x2, $y2) = ($2, $3, $4, $5);
+        for my $x ($x1 .. $x2) {
+            for my $y ($y1 .. $y2) {
+                for ($command) {
+                    if (/turn on/i) {
+                        $light_map_1{($x,$y)} = 1;
+                        $light_map_2{($x,$y)} = 0 unless defined $light_map_2{($x,$y)};
+                        $light_map_2{($x,$y)}++;
+                    }
+                    elsif (/turn off/i) {
+                        $light_map_1{($x,$y)} = 0;
+                        $light_map_2{($x,$y)} = 1 unless (defined $light_map_2{($x,$y)} and $light_map_2{($x,$y)} > 0);
+                        $light_map_2{($x,$y)}--;
+                    }
+                    elsif (/toggle/i) {
+                        $light_map_1{($x,$y)} = ++($light_map_1{($x,$y)}) % 2;
+                        $light_map_2{($x,$y)} = 0 unless defined $light_map_2{($x,$y)};
+                        $light_map_2{($x,$y)} += 2;
+                    }
+                }
+            }
+        }
+    }
+}
+
+close $fh;
+
+print (sum (map { $light_map_1{$_} } keys %light_map_1) . "\n");
+print (sum (map { $light_map_2{$_} } keys %light_map_2) . "\n");
+
