@@ -1,0 +1,64 @@
+#!/usr/bin/perl
+
+use Scalar::Util qw(looks_like_number);
+
+use strict;
+use warnings;
+
+my (%data_1, %data_2);
+
+open (my $fh, '<', shift) or die "error opening input file: $!";
+
+while (<$fh>) {
+    if (/(.+) -> (.+)/i) {
+        $data_1{$2} = $1;
+        $data_2{$2} = $1;
+    }
+}
+
+close $fh;
+
+my $val = calculate('a',\%data_1);
+
+print ($val . "\n");
+
+$data_2{'b'} = $val;
+
+print (calculate('a',\%data_2) . "\n");
+
+sub calculate {
+    my ($wire, $data) = @_;
+    return $wire if looks_like_number($wire);
+    my $statement = $data->{$wire};
+    my $value;
+    for ($statement) {
+        if (/^(\w+) AND (\w+)$/i) {
+            my ($a, $b) = ($1, $2);
+            $value = calculate($a, $data) & calculate($b, $data);
+        }
+        elsif (/^(\w+) OR (\w+)$/i) {
+            my ($a, $b) = ($1, $2);
+            $value = calculate($a, $data) | calculate($b, $data);
+        }
+        elsif (/^(\w+) LSHIFT (\w+)$/i) {
+            my ($a, $b) = ($1, $2);
+            $value = calculate($a, $data) << $b;
+        }
+        elsif (/^(\w+) RSHIFT (\w+)$/i) {
+            my ($a, $b) = ($1, $2);
+            $value = calculate($a, $data) >> $b;
+        }
+        elsif (/^NOT (\w+)$/i) {
+            my $a = $1;
+            $value = ~calculate($a, $data);
+        }
+        elsif (exists $data->{$statement}) {
+            $value = calculate($statement, $data);
+        }
+        elsif (looks_like_number($statement)) {
+            return $statement;
+        }
+    }
+    $data->{$wire} = calculate($value, $data) & 0xFFFF;
+}
+
