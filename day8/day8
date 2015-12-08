@@ -1,0 +1,35 @@
+#!/usr/bin/perl
+
+use strict;
+use warnings;
+
+open (my $fh, '<', shift) or die "error opening input file: $!";
+
+my $diff_1 = 0;
+my $diff_2 = 0;
+
+while (<$fh>) {
+    chomp;
+    $diff_1 += ((length) - length(interpolate($_)));
+    $diff_2 += (length(quote($_)) - (length));
+}
+
+close $fh;
+
+print "$diff_1\n$diff_2\n";
+
+sub interpolate {
+    die "not a string" unless (shift =~ /"(.*)"/);
+    my $string = $1;
+    $string =~ s/\\\\/\\/g;
+    $string =~ s/\\"/"/g;
+    $string =~ s/\\x[0-9A-F]{2}/x/ig;
+    return $string;
+}
+
+sub quote {
+    my $string = shift;
+    $string =~ s/\\/\\\\/g;
+    $string =~ s/"/\\"/g;
+    return "\"$string\"";
+}
