@@ -1,0 +1,46 @@
+#!/usr/bin/perl
+
+use strict;
+use warnings;
+
+use Data::Dumper;
+
+my %distances;
+my $best_solution = 9999999;
+my $worst_solution = 0;
+
+open (my $fh, '<', shift) or die "error opening input file: $!";
+
+while (<$fh>) {
+    if ($_ =~ /(\w+) to (\w+) = (\d+)/i) {
+        my ($node1, $node2, $distance) = ($1, $2, $3);
+        $distances{$node1}->{$node2} = $distance;
+        $distances{$node2}->{$node1} = $distance;
+    }
+}
+
+close $fh;
+
+my @keys = keys %distances;
+
+foreach my $n (@keys) {
+    $distances{start}->{$n} = 0;
+}
+
+calculate_solution(0, 'start', \@keys);
+
+print "$best_solution\n";
+print "$worst_solution\n";
+
+sub calculate_solution {
+    my ($current_distance, $current_node, $nodes) = @_;
+    $best_solution = $current_distance if ((scalar (@$nodes) == 0) and ($current_distance < $best_solution));
+    $worst_solution = $current_distance if ((scalar (@$nodes) == 0) and ($current_distance > $worst_solution));
+    my $index = 0;
+    foreach my $next_node (@$nodes) {
+        my @nodes_copy = @$nodes;
+        splice @nodes_copy, $index++, 1;
+        calculate_solution($current_distance + $distances{$current_node}->{$next_node}, $next_node, \@nodes_copy) if exists $distances{$current_node}->{$next_node};
+    }
+}
+
