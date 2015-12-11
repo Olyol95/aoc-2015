@@ -1,0 +1,42 @@
+#!/usr/bin/perl
+
+use strict;
+use warnings;
+
+open (my $fh, '<', shift) or die "error opening input file: $!";
+
+while (<$fh>) {
+    chomp;
+    my $password = $_;
+    foreach (0 .. 1) {
+        do { $password = inc($password); } while (not meets_criteria($password));
+        print "$password\n";
+    }
+    print "\n";
+}
+
+close $fh;
+
+sub meets_criteria {
+    my $pass = shift;
+    return  ($pass !~ /[iol]/i
+        && $pass =~ /(\w)\1\w*([^\1])\2/
+        && contains_consecutive_inc($pass));
+}
+
+sub contains_consecutive_inc {
+    my $password = shift;
+    my @sp = split //, $password;
+    foreach (0 .. scalar(@sp)-3) {
+        return 1 if (inc($sp[$_]) eq $sp[$_+1]
+                        && inc($sp[$_+1]) eq $sp[$_+2]);
+    }
+    return 0;
+}
+
+sub inc {
+    my $term = shift;
+    my $term_cpy = $term;
+    return ($term . "a") if (++$term_cpy =~ /\d/);
+    return ++$term;
+}
