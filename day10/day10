@@ -1,0 +1,42 @@
+#!/usr/bin/perl
+
+use strict;
+use warnings;
+
+open (my $fh, '<', shift) or die "error opening input file: $!";
+
+my @buffer;
+
+while (<$fh>) {
+    chomp;
+    my @input = split //;
+    my @output;
+    for (1 .. 50) {
+        lookandsay(\@input, \@output) if $_ % 2 == 1;
+        lookandsay(\@output, \@input) if $_ % 2 == 0;
+        print (scalar(@input) . "\n") if $_ == 40;
+    }
+    print (scalar(@input) . "\n");
+}
+
+close $fh;
+
+sub lookandsay {
+    my ($input, $output) = @_;
+    my $last_num = @$input[0];
+    my $item;
+    while (scalar(@$input) > 0) {
+        $item = shift @$input;
+        if ($item != $last_num) {
+            push @$output, scalar(@buffer);
+            push @$output, $last_num;
+            $last_num = $item;
+            @buffer = ();
+        }
+        push @buffer, $item;
+    }
+    push @$output, scalar(@buffer);
+    push @$output, $last_num;
+    @buffer = ();
+}
+
