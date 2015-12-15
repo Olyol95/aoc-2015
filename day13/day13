@@ -1,0 +1,51 @@
+#!/usr/bin/perl
+
+use Algorithm::Permute;
+
+use strict;
+use warnings;
+
+my %model;
+
+open (my $fh, '<', shift) or die "error opening input file: $!";
+
+while (<$fh>) {
+    $model{$1}->{$3} = "-$2" if ($_ =~ /^(\w+) would lose (\d+) happiness units by sitting next to (\w+)/i);
+    $model{$1}->{$3} = "$2"  if ($_ =~ /^(\w+) would gain (\d+) happiness units by sitting next to (\w+)/i);
+}
+
+close $fh;
+
+my @keys = keys %model;
+print calculate_optimum(\@keys) . "\n";
+
+foreach (keys %model) {
+    $model{ 'Me' }->{ $_ } = 0;
+    $model{ $_ }->{ 'Me' } = 0;
+}
+
+@keys = keys %model;
+print calculate_optimum(\@keys) . "\n";
+
+sub calculate_optimum {
+    my $optimum = 0;
+    my $permutation = new Algorithm::Permute(\@keys);
+    while (my @result = $permutation->next) {
+        my $score = calculate_arrangement_score(\@result);
+        $optimum = $score if $score > $optimum;
+    }
+    return $optimum;
+}
+
+sub calculate_arrangement_score {
+    my $arrangement = shift;
+    my $score = 0;
+    for (0 .. scalar(@$arrangement) - 1) {
+        $score += $model{ $arrangement->[$_] }->{ $arrangement->[$_+1] } if $_ <  (scalar(@$arrangement) -1);
+        $score += $model{ $arrangement->[$_+1] }->{ $arrangement->[$_] } if $_ <  (scalar(@$arrangement) -1);
+        $score += $model{ $arrangement->[$_] }->{ $arrangement->[0]    } if $_ == (scalar(@$arrangement) -1);
+        $score += $model{ $arrangement->[0]  }->{ $arrangement->[$_]   } if $_ == (scalar(@$arrangement) -1);
+    }
+    return $score;
+}
+
