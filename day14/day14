@@ -1,0 +1,68 @@
+#!/usr/bin/env perl
+
+use strict;
+use warnings;
+
+my %reindeer;
+
+open (my $fh, '<', shift) or die "error opening input file: $!";
+
+while (<$fh>) {
+    if ($_ =~ /^(\w+) can fly (\d+) km\/s for (\d+) seconds, but then must rest for (\d+)/i) {
+        $reindeer{$1}->{speed} = $2;
+        $reindeer{$1}->{duration} = $3;
+        $reindeer{$1}->{rest} = $4;
+    }
+}
+
+close $fh;
+
+simulate(2503);
+
+print find_max_distance() . "\n";
+print find_max_score() . "\n";
+
+sub find_max_distance {
+    my $max = 0;
+    foreach (keys %reindeer) {
+        $max = $reindeer{$_}->{distance} if $reindeer{$_}->{distance} > $max;
+    }
+    return $max;
+}
+
+sub find_max_score {
+    my $max = 0;
+    foreach (keys %reindeer) {
+        $max = $reindeer{$_}->{score} if $reindeer{$_}->{score} > $max;
+    }
+    return $max;
+}
+
+sub simulate {
+    my $clock = shift;
+    foreach (keys %reindeer) {
+        $reindeer{$_}->{distance} = 0;
+        $reindeer{$_}->{cooldown} = 0;
+        $reindeer{$_}->{stamina} = $reindeer{$_}->{duration};
+        $reindeer{$_}->{score} = 0;
+    }
+    do {
+        foreach (keys %reindeer) {
+            if ($reindeer{$_}->{cooldown} > 0) {
+                $reindeer{$_}->{cooldown}--;
+            } else {
+                $reindeer{$_}->{distance} += $reindeer{$_}->{speed};
+                $reindeer{$_}->{stamina}--;
+                if ($reindeer{$_}->{stamina} <= 0) {
+                    $reindeer{$_}->{cooldown} = $reindeer{$_}->{rest};
+                    $reindeer{$_}->{stamina} = $reindeer{$_}->{duration};
+                }
+            }
+        }
+        my $max = find_max_distance();
+        foreach (keys %reindeer) {
+            $reindeer{$_}->{score}++ if $reindeer{$_}->{distance} == $max;
+        }
+    } while (--$clock > 0);
+}
+
