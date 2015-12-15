@@ -1,0 +1,52 @@
+#!/usr/bin/perl
+
+use JSON::Parse qw( parse_json );
+use Scalar::Util qw( looks_like_number );
+
+use strict;
+use warnings;
+
+my ($input, $content);
+
+open (my $fh, '<', shift) or die "error opening input file! $!";
+
+while (<$fh>) {
+    chomp;
+    $input .= $_;
+}
+
+close $fh;
+
+$content = parse_json($input);
+
+print (add_numbers($content)        . "\n");
+print (add_numbers($content, "red") . "\n");
+
+sub add_numbers {
+    my ($obj, $exclusion) = @_;
+    my $total = 0;
+    if (ref $obj) {
+        if (ref($obj) eq "HASH") {
+            foreach (keys %$obj) {
+                if (ref (${ $obj }{$_}) ne '') {
+                    $total += add_numbers(${ $obj }{$_}, $exclusion);
+                }
+                else {
+                    $total += ${ $obj }{$_} if looks_like_number(${ $obj }{$_});
+                    return 0 if (defined $exclusion and defined ${ $obj }{$_} and ${ $obj }{$_} eq $exclusion);
+                }
+            }
+        }
+        elsif (ref($obj) eq "ARRAY") {
+            foreach (@$obj) {
+                if (ref $_ ne '') { 
+                    $total += add_numbers($_, $exclusion);
+                }
+                else {
+                    $total += $_ if looks_like_number($_);
+                }
+            }
+        }
+    }
+    return $total;
+}
